@@ -24,6 +24,7 @@ db = MySQLdb.connect(
     user=os.getenv("MYSQL_USER"),
     passwd=os.getenv("MYSQL_PASSWORD"),
     db=os.getenv("MYSQL_DB"),
+    port=int(os.getenv("MYSQL_PORT", "3306")),
     charset="utf8mb4",
     use_unicode=True,
 )
@@ -246,4 +247,5 @@ def admin_get_leads():
 #        RUN SERVER
 # ---------------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
