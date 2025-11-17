@@ -45,7 +45,7 @@ def require_admin():
 
 @app.route("/api/auth/register", methods=["POST"])
 def register_user():
-    """רישום משתמש רגיל (role=user)."""
+    """רישום משתמש. אם זה מייל של בעל האתר -> admin, אחרת user."""
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
@@ -53,17 +53,26 @@ def register_user():
     if not email or not password:
         return jsonify({"error": "email & password required"}), 400
 
+    # בודק אם המשתמש כבר קיים
     cursor.execute("SELECT id FROM users WHERE email=%s", (email,))
     if cursor.fetchone():
         return jsonify({"error": "user already exists"}), 409
 
     password_hash = generate_password_hash(password)
+
+    # כאן הקסם: אם זה המייל של הבעלים -> אדמין
+    if email == "owner@myspa.com":
+        role = "admin"
+    else:
+        role = "user"
+
     cursor.execute(
         "INSERT INTO users (email, password_hash, role) VALUES (%s, %s, %s)",
-        (email, password_hash, "user"),
+        (email, password_hash, role),
     )
     db.commit()
-    return jsonify({"message": "user created"}), 201
+    return jsonify({"message": "user created", "role": role}), 201
+
 
 
 @app.route("/api/auth/login", methods=["POST"])
